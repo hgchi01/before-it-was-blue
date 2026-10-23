@@ -363,6 +363,11 @@ function paint(S,stage){
   set('under',v[0],1);set('ideal',v[1],v[2]);set('over',v[3],1);
 }
 
+/* ESP32 bridge: only active when the site is shown inside the ESP32's page */
+const FRAMED=window.parent!==window;
+const post=m=>{if(FRAMED)try{window.parent.postMessage(Object.assign({src:'biwb'},m),'*')}catch(_){}};
+let lastBeat=0;
+
 /* firing engine */
 const fire={p:0,hold:false,last:0};
 const tempAt=p=>{const s=p*8,i=Math.min(7,Math.floor(s)),t=s-i;return TEMPS[i]+(TEMPS[i+1]-TEMPS[i])*t;};
@@ -377,9 +382,10 @@ const ICOL={touch:'var(--ember)',up:'var(--cobalt)',check:'var(--ok)',drop:'var(
 const ARROW='<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 
 let FS,DS,lastSt=null;
-function setHold(on){if(on===fire.hold)return;fire.hold=on;FS.heat.classList.toggle('on',on);renderFeedback();}
+function setHold(on){if(on===fire.hold)return;fire.hold=on;post({t:'hold',on,temp:Math.round(tempAt(fire.p))});FS.heat.classList.toggle('on',on);renderFeedback();}
 function tick(ts){const dt=fire.last?Math.min(0.1,(ts-fire.last)/1000):0;fire.last=ts;
   if(fire.hold&&fire.p<1)fire.p=Math.min(1,fire.p+dt/FIRE_SECONDS);
+  if(fire.hold&&ts-lastBeat>200){lastBeat=ts;post({t:'temp',temp:Math.round(tempAt(fire.p))});}
   if(!$('#s-firing').hidden)render();requestAnimationFrame(tick);}
 function render(){
   const T=tempAt(fire.p),st=stateOf(T);paint(FS,fire.p*8);
@@ -401,7 +407,7 @@ function renderFeedback(){
     else if(st==='over')html='<span class="pill fb-anim">Too hot, try again 🥵</span>';}
   if(fb.dataset.h!==html){fb.dataset.h=html;fb.innerHTML=html;const b=$('#exploreBtn');if(b)b.onclick=()=>go('complete');}
 }
-function resetFire(){fire.p=0;fire.hold=false;lastSt=null;FS.heat.classList.remove('on');render();renderFeedback();}
+function resetFire(){post({t:'reset'});fire.p=0;fire.hold=false;lastSt=null;FS.heat.classList.remove('on');render();renderFeedback();}
 
 /* navigation */
 const screens=['welcome','firing','complete','reveal','takeaway'];
@@ -410,6 +416,7 @@ function setView(v){$$('[data-view]').forEach(b=>b.setAttribute('aria-pressed',b
   for(const S of [FS,DS]){S.el.dataset.mode=v;layout(S);}paint(FS,fire.p*8);paint(DS,fire.p*8);}
 function go(name,{push=true}={}){
   if(push&&name!==current)stack.push(current);
+  if(name!=='firing'&&fire.hold)setHold(false);
   current=name;for(const s of screens)$('#s-'+s).hidden=s!==name;
   $('#backBtn').hidden=!['complete','reveal','takeaway'].includes(name);
   if(name==='firing'){if(push)stack.length=0;setView('fragment');resetFire();}
@@ -448,6 +455,7 @@ new ResizeObserver(()=>{$$('.stage').forEach(el=>el._S&&layout(el._S));paint(FS,
 render();requestAnimationFrame(tick);
 const h=location.hash.replace('#','');go(screens.includes(h)?h:'welcome',{push:false});
 window.BIWB={fire,setHold,go};
+post({t:'ready'});
 })();
 </script>
 </body>
