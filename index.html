@@ -432,7 +432,7 @@ const fire={p:0,hold:false,last:0};
 const tempAt=p=>{const s=p*8,i=Math.min(7,Math.floor(s)),t=s-i;return TEMPS[i]+(TEMPS[i+1]-TEMPS[i])*t;};
 const stateOf=T=>fire.p<=0?'ready':T<WIN[0]?'under':T<=WIN[1]?'ideal':'over';
 const COPY={
-  ready:{chip:'Ready to begin',guide:'Hold and press the artefact',icon:'touch',k:'Wearable connected',wear:'Unfired cobalt',bars:0},
+  ready:{chip:'Ready to begin',guide:'Press and hold the dot to fire',icon:'touch',k:'Wearable connected',wear:'Unfired cobalt',bars:0},
   under:{chip:'Underfired',guide:'This area needs more heat',icon:'up',k:'Underfired',wear:'Dull, greyish blue',bars:1},
   ideal:{chip:'Ideal Firing',guide:'Nice temperature',icon:'check',k:'Ideal firing',wear:'Vivid, bright blue',bars:2},
   over:{chip:'Overfired',guide:'Too much heat',icon:'drop',k:'Overfired',wear:'Muted, purplish blue',bars:3}};
