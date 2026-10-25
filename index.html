@@ -211,7 +211,7 @@ main{flex:1;min-height:0;position:relative}
   .card img{width:220px;height:220px;align-self:center;margin-block:10px}
   .reveal .actions{flex-direction:row-reverse;justify-content:flex-end;align-items:center;gap:16px}
   .reveal .note{display:block;margin-left:auto;order:-1}
-  .lbl-m{display:none}.lbl-t{display:inline}
+  .lbl-m{display:none}.lbl-t{display:inline}.br-m{display:none}
 }
 
 /* ---------- takeaway ---------- */
@@ -228,7 +228,12 @@ main{flex:1;min-height:0;position:relative}
   .firing,.complete{grid-template-rows:auto auto auto auto auto}
   .firing .stage,.complete .stage{height:clamp(300px,min(96vw,58vh),560px)}
   .welcome{grid-template-rows:auto clamp(260px,min(90vw,50vh),520px) auto auto}
-  .panel{margin-inline:0}
+  .panel{margin-inline:0;border-radius:22px}
+  .firing,.complete{padding-bottom:20px}
+  .takeaway{grid-template-rows:auto auto;align-items:start;gap:24px}
+  .takeaway .stage{height:clamp(220px,62vw,340px);min-height:0}
+  .takeaway .key p{font:500 15px/1.5 var(--body)}
+  .takeaway .start-again{width:100%;height:52px}
 }
 @media (prefers-reduced-motion:reduce){*:not(.touch-dot i){animation-duration:.01ms!important;animation-iteration-count:1!important}}
 </style>
@@ -305,15 +310,15 @@ main{flex:1;min-height:0;position:relative}
 
     <!-- REVEAL -->
     <section class="screen reveal" id="s-reveal" hidden>
-      <h2 class="h1" style="font-size:clamp(30px,4vw,40px)">Different Heat, Different Blues</h2>
+      <h2 class="h1" style="font-size:clamp(30px,4vw,40px)">Different Heat<span class="lbl-t">,</span><br class="br-m"> Different Blues</h2>
       <div class="cards" role="group" aria-label="Firing outcomes">
         <button class="card" data-k="under" aria-pressed="false"><img src="assets/plate-under.webp" alt="Underfired plate"><span class="t"><span class="k">Dull, greyish blue</span><span class="h3">Underfired</span><p>The blue never fully develops.</p></span></button>
         <button class="card" data-k="ideal" aria-pressed="true"><img src="assets/plate-ideal.webp" alt="Ideal firing plate"><span class="t"><span class="k">Vivid, bright blue</span><span class="h3">Ideal Firing</span><p>The blue fully develops, creating a bright, vivid colour.</p></span></button>
         <button class="card" data-k="over" aria-pressed="false"><img src="assets/plate-over.webp" alt="Overfired plate"><span class="t"><span class="k">Muted, purplish blue</span><span class="h3">Overfired</span><p>Excessive heat causes the blue to lose its clarity.</p></span></button>
       </div>
       <div class="actions">
-        <button class="btn primary nudge" data-go="takeaway"><span class="lbl-t">Final Takeaway</span><span class="lbl-m">Look again at the artefact</span> <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
-        <button class="btn secondary" data-go="firing"><span class="lbl-t">Start again</span><span class="lbl-m">Fire again</span> <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4.5v4h4"/></svg></button>
+        <button class="btn primary nudge" data-go="takeaway">Final Takeaway <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        <button class="btn secondary" data-go="firing">Start again <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4.5v4h4"/></svg></button>
         <span class="small note">Temperatures are simulated; ≈1300 °C is the literature reference.</span>
       </div>
     </section>
@@ -325,7 +330,7 @@ main{flex:1;min-height:0;position:relative}
         <h2 class="h2">Behind every blue was a craftsperson's knowledge.</h2>
         <p class="body">Their blue patterns reveal how firing temperature shaped the final color.</p>
         <div class="key"><div class="k">Key takeaway</div><p>More heat doesn’t always mean better porcelain. Knowing how to control the heat was part of the craft.</p></div>
-        <div><button class="btn primary sm" data-go="firing">Start again <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4.5v4h4"/></svg></button></div>
+        <div><button class="btn primary sm start-again" data-go="firing">Start again <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4.5v4h4"/></svg></button></div>
       </div>
     </section>
   </main>
