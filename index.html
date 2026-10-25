@@ -31,7 +31,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px
 img{max-width:100%}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 button:focus-visible{outline:2px solid var(--cobalt);outline-offset:3px}
-.app{height:100%;display:flex;flex-direction:column;max-width:1280px;margin:0 auto}
+.app{height:100%;height:100dvh;display:flex;flex-direction:column;max-width:1280px;margin:0 auto}
 
 /* header */
 .hdr{display:flex;align-items:center;gap:14px;margin-inline:var(--gut) var(--gutr);padding-block:18px 14px;border-bottom:1px solid var(--line);flex:none}
@@ -65,18 +65,21 @@ main{flex:1;min-height:0;position:relative}
 
 /* artefact */
 .stage{position:relative;display:grid;place-items:center;min-height:0;min-width:0;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-.art-box{position:relative;filter:drop-shadow(0 26px 34px rgba(0,0,0,.55))}
+.art-box{position:relative}
+.art-shadow{position:absolute;inset:0;overflow:hidden;filter:drop-shadow(0 26px 34px rgba(0,0,0,.55))}
 .art{position:absolute}
 .art .layer{position:absolute;inset:0;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
 .art img{display:block;width:100%;height:100%;-webkit-user-drag:none;pointer-events:none}
 .heat{position:absolute;border-radius:50%;pointer-events:none;background:radial-gradient(closest-side,rgba(233,180,138,.55),rgba(233,180,138,0));opacity:0;transition:opacity .35s;mix-blend-mode:screen}
 .heat.on{opacity:1}
-.touch-dot{position:absolute;width:0;height:0;pointer-events:none;transition:opacity .4s}
+.touch-dot{position:absolute;width:0;height:0;pointer-events:none;transition:opacity .4s;z-index:2}
 .touch-dot i{position:absolute;left:0;top:0;border-radius:50%;transform:translate(-50%,-50%)}
-.touch-dot .core{width:14px;height:14px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.4);animation:core 1.2s ease-out infinite}
+.touch-dot .core{width:14px;height:14px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.4);-webkit-animation:core 1.2s ease-out infinite;animation:core 1.2s ease-out infinite}
 .touch-dot .ring{width:36px;height:36px;border:1.5px solid rgba(255,255,255,.9);background:rgba(255,255,255,.12)}
-.touch-dot .wave{width:36px;height:36px;border:1.5px solid rgba(255,255,255,.8);background:rgba(255,255,255,.18);animation:wave 1.2s ease-out infinite}
-@keyframes wave{from{width:32px;height:32px;opacity:1}to{width:90px;height:90px;opacity:0}}
+.touch-dot .wave{width:36px;height:36px;border:1.5px solid rgba(255,255,255,.8);background:rgba(255,255,255,.18);will-change:transform,opacity;-webkit-animation:wave 1.2s ease-out infinite;animation:wave 1.2s ease-out infinite}
+@-webkit-keyframes wave{from{-webkit-transform:translate(-50%,-50%) scale(.9);opacity:1}to{-webkit-transform:translate(-50%,-50%) scale(2.5);opacity:0}}
+@keyframes wave{from{transform:translate(-50%,-50%) scale(.9);opacity:1}to{transform:translate(-50%,-50%) scale(2.5);opacity:0}}
+@-webkit-keyframes core{0%,100%{-webkit-transform:translate(-50%,-50%) scale(1)}35%{-webkit-transform:translate(-50%,-50%) scale(1.18)}}
 @keyframes core{0%,100%{transform:translate(-50%,-50%) scale(1)}35%{transform:translate(-50%,-50%) scale(1.18)}}
 
 /* ---------- welcome ---------- */
@@ -147,6 +150,7 @@ main{flex:1;min-height:0;position:relative}
 .bars i:nth-child(1){height:8px}.bars i:nth-child(2){height:13px}.bars i:nth-child(3){height:18px}
 .bars i.on{background:var(--ember)} .bars i.on:nth-child(3){background:var(--heat)}
 .grow{flex:1}
+.panel>*{flex-shrink:0}
 
 /* complete reveal */
 .reveal-seq>*{opacity:0}
@@ -164,7 +168,7 @@ main{flex:1;min-height:0;position:relative}
 @media (min-width:900px) and (orientation:landscape){
   .firing,.complete{grid-template-columns:360px minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);column-gap:48px;padding-block:24px;
     grid-template-areas:"panel title" "panel controls" "panel stage"}
-  .panel{border-radius:20px;margin:0;padding:24px 28px;box-shadow:none;gap:14px}
+  .panel{border-radius:20px;margin:0;padding:24px 28px;box-shadow:none;gap:14px;overflow-y:auto;min-height:0}
   .firing .reset-top{display:none} .reset-side{display:flex}
   .firing .feedback{grid-area:controls;justify-self:end;min-height:0}
   .firing .feedback .pill{font-size:17px;border:0;background:none;padding:0}
@@ -219,7 +223,14 @@ main{flex:1;min-height:0;position:relative}
 .key p{margin:0;font:400 20px/1.4 var(--display)}
 @media (min-width:900px) and (orientation:landscape){.takeaway{grid-template-columns:1fr 1fr;grid-template-rows:1fr;column-gap:56px}}
 
-@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+@media not all and (min-width:900px) and (orientation:landscape){
+  .screen{overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .firing,.complete{grid-template-rows:auto auto auto auto auto}
+  .firing .stage,.complete .stage{height:clamp(300px,min(96vw,58vh),560px)}
+  .welcome{grid-template-rows:auto clamp(260px,min(90vw,50vh),520px) auto auto}
+  .panel{margin-inline:0}
+}
+@media (prefers-reduced-motion:reduce){*:not(.touch-dot i){animation-duration:.01ms!important;animation-iteration-count:1!important}}
 </style>
 </head>
 <body>
@@ -337,11 +348,12 @@ const clipPoly='polygon('+POLY.map(([x,y])=>(x/SRC*100).toFixed(2)+'% '+(y/SRC*1
 function buildStage(el,{layers=['raw'],dot=false}){
   el.innerHTML='';
   const box=document.createElement('div');box.className='art-box';el.appendChild(box);
-  const art=document.createElement('div');art.className='art';box.appendChild(art);
+  const sh=document.createElement('div');sh.className='art-shadow';box.appendChild(sh);
+  const art=document.createElement('div');art.className='art';sh.appendChild(art);
   const L={};
   for(const k of layers){const d=document.createElement('div');d.className='layer';const im=document.createElement('img');im.src=IMG[k];im.alt='';im.draggable=false;d.appendChild(im);art.appendChild(d);L[k]=d;}
   const heat=document.createElement('div');heat.className='heat';art.appendChild(heat);
-  let td=null;if(dot){td=document.createElement('div');td.className='touch-dot';td.innerHTML='<i class="wave"></i><i class="ring"></i><i class="core"></i>';art.appendChild(td);}
+  let td=null;if(dot){td=document.createElement('div');td.className='touch-dot';td.innerHTML='<i class="wave"></i><i class="ring"></i><i class="core"></i>';box.appendChild(td);}
   const S={el,box,art,L,heat,td};el._S=S;layout(S);return S;
 }
 function layout(S){
@@ -354,7 +366,7 @@ function layout(S){
   Object.assign(S.art.style,{width:size+'px',height:size+'px',left:ox+'px',top:oy+'px',clipPath:clip,webkitClipPath:clip});
   S.W=(plate?size:BW/SRC*size);S.ox=ORIGIN.x/SRC*size;S.oy=ORIGIN.y/SRC*size;
   const hs=S.W*0.5;Object.assign(S.heat.style,{width:hs+'px',height:hs+'px',left:S.ox-hs/2+'px',top:S.oy-hs/2+'px'});
-  if(S.td){S.td.style.left=S.ox+'px';S.td.style.top=S.oy+'px';}
+  if(S.td){S.td.style.left=(parseFloat(S.art.style.left)+S.ox)+'px';S.td.style.top=(parseFloat(S.art.style.top)+S.oy)+'px';}
 }
 function paint(S,stage){
   const i=Math.min(7,Math.floor(stage)),t=stage-i,a=TBL[i],b=TBL[i+1];const v=a.map((x,k)=>x+(b[k]-x)*t);
