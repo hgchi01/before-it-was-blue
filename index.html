@@ -435,6 +435,7 @@ const COPY={
   ready:{chip:'Ready to begin',guide:'Press and hold the dot to fire',icon:'touch',k:'Wearable connected',wear:'Unfired cobalt',bars:0},
   under:{chip:'Underfired',guide:'Keep holding to heat it more',icon:'up',k:'Underfired',wear:'Dull, greyish blue',bars:1},
   ideal:{chip:'Ideal Firing',guide:'Nice temperature',icon:'check',k:'Ideal firing',wear:'Vivid, bright blue',bars:2},
+  under2:{chip:'Underfired',guide:'Keep holding until the blue turns vivid',icon:'up',k:'Underfired',wear:'Dull, greyish blue',bars:1},
   over:{chip:'Overfired',guide:'Too much heat',icon:'drop',k:'Overfired',wear:'Muted, purplish blue',bars:3}};
 const ICONS={touch:'<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/>',up:'<path d="M7 17L17 7M9 7h8v8"/>',check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',drop:'<path d="M12 3.5c3 4 6 7 6 10.5a6 6 0 0 1-12 0c0-3.5 3-6.5 6-10.5z"/>'};
 const ICOL={touch:'var(--ember)',up:'var(--cobalt)',check:'var(--ok)',drop:'var(--hot)'};
@@ -448,12 +449,12 @@ function tick(ts){const dt=fire.last?Math.min(0.1,(ts-fire.last)/1000):0;fire.la
   if(fire.hold&&ts-lastBeat>200){lastBeat=ts;post({t:'temp',temp:Math.round(tempAt(fire.p))});}
   if(!$('#s-firing').hidden)render();requestAnimationFrame(tick);}
 function render(){
-  const T=tempAt(fire.p),st=stateOf(T);paint(FS,fire.p*8);
+  const T=tempAt(fire.p),st0=stateOf(T),st=st0==='under'&&T>=800?'under2':st0;paint(FS,fire.p*8);
   if(FS.td)FS.td.style.opacity=fire.p>0?0:1;
   $('#tempNum').textContent=Math.round(T);
   const f=(T-25)/1375,th=$('#thermo');th.style.setProperty('--fillw',`${f*100}%`);th.style.setProperty('--fillh',`calc(${f} * (100% - 20px))`);
   $('#marker').style.opacity=fire.p>0?1:0;
-  if(st!==lastSt){const c=COPY[st];$('#status').dataset.s=st;$('#statusTxt').textContent=c.chip;
+  if(st!==lastSt){const c=COPY[st];$('#status').dataset.s=st0;$('#statusTxt').textContent=c.chip;
     $('#guidance').innerHTML=`<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="${ICOL[c.icon]}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[c.icon]}</svg><span>${c.guide}</span>`;
     $('#wearK').textContent=c.k;$('#wearV').textContent=c.wear;[...$('#bars').children].forEach((b,i)=>b.classList.toggle('on',i<c.bars));
     const over=st==='over';$('#resetSide').className='btn reset-side '+(over?'white':'secondary');$('#resetTop').classList.toggle('white',over);
