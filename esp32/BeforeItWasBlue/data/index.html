@@ -496,7 +496,7 @@ const SND=(()=>{
   const FX={
     tap:t=>bell(2637,t,{gain:.07,dur:.35,wet:.15}),
     next:t=>{bell(mtof(81),t,{gain:.09,dur:1.4});bell(mtof(86),t+.11,{gain:.1,dur:1.8})},
-    card:t=>{const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.setValueAtTime(1100,t);o.frequency.exponentialRampToValueAtTime(620,t+.05);env(g,t,.12,.002,.09);o.connect(g);g.connect(out(sfx,.15));o.start(t);o.stop(t+.12)},
+    card:t=>{const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.setValueAtTime(1100,t);o.frequency.exponentialRampToValueAtTime(620,t+.05);env(g,t,.17,.002,.1);o.connect(g);g.connect(out(sfx,.15));o.start(t);o.stop(t+.12)},
     reset:t=>{swish(t,{from:500,to:1600,dur:.38,gain:.16,rise:true});bell(2637,t+.38,{gain:.06,dur:.4,wet:.2})},
     ignite:t=>{swish(t,{from:250,to:1300,dur:.55,gain:.22});const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.setValueAtTime(90,t);o.frequency.exponentialRampToValueAtTime(48,t+.3);env(g,t,.25,.01,.35);o.connect(g);g.connect(sfx);o.start(t);o.stop(t+.4)},
     cool:t=>swish(t,{from:900,to:260,dur:.8,gain:.12,q:.8}),
@@ -525,7 +525,7 @@ const SND=(()=>{
   function applyDuck(){if(!ctx)return;const t=ctx.currentTime;if(playing)music.gain.setTargetAtTime(MUSIC*(vduck?.3:ducked?.45:1),t,.2);sfx.gain.setTargetAtTime(SFX*(vduck?.7:1),t,.15)}
   function duck(d){ducked=d;applyDuck()}
   /* recorded voice guidance (assets/voice/*.mp3) */
-  const VOICE=['start','again','under','under2','ideal','over','complete'],vbuf={};let vsrc=null,pend=null;
+  const VOICE=['start','again','under','under2','ideal','over','complete','reveal'],vbuf={};let vsrc=null,pend=null;
   function decode(b){return new Promise((res,rej)=>{const p=ctx.decodeAudioData(b,res,rej);if(p&&p.then)p.then(res,rej)})}
   function loadVoice(){for(const k of VOICE)fetch('assets/voice/'+k+'.mp3').then(r=>r.arrayBuffer()).then(decode).then(buf=>{vbuf[k]=buf;flush()}).catch(()=>{})}
   function flush(){if(pend&&performance.now()-pend.t<2500){const k=pend.k,d=pend.d;if(vbuf[k]&&ctx.state==='running'){pend=null;say(k,d)}}}
@@ -618,6 +618,7 @@ function go(name,{push=true}={}){
   $('#backBtn').hidden=!['complete','reveal','takeaway'].includes(name);
   if(name==='firing'){if(push)stack.length=0;setView('fragment');resetFire();}
   if(name==='complete'&&push)SND.say('complete',.6);   // after the 'firing complete' bells
+  if(name==='reveal'&&push)SND.say('reveal',.35);      // after the 'next' chime
   if(name==='complete'){$('#cTemp').textContent=Math.round(tempAt(fire.p));setView($('#s-firing [aria-pressed="true"]').dataset.view);
     const seq=$('#revealSeq');seq.classList.remove('play');void seq.offsetWidth;seq.classList.add('play');}
   if(name==='reveal')$$('.card').forEach(c=>c.setAttribute('aria-pressed',c.dataset.k==='ideal'));
