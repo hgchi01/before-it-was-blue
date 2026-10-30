@@ -239,6 +239,8 @@ main{flex:1;min-height:0;position:relative}
   .takeaway .key p{font:500 15px/1.5 var(--body)}
   .takeaway .start-again{width:100%;height:52px}
 }
+#devBadge{position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:20;
+  padding:7px 14px;border-radius:999px;font-size:13px;color:#fff;background:rgba(160,40,30,.92);box-shadow:0 4px 16px rgba(0,0,0,.3);pointer-events:none;white-space:nowrap;max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis}
 @media (prefers-reduced-motion:reduce){*:not(.touch-dot i){animation-duration:.01ms!important;animation-iteration-count:1!important}}
 </style>
 </head>
@@ -425,8 +427,24 @@ function stepHeat(S,dt){if(S.heat===S.heatT)return;const d=dt/0.35;S.heat=S.heat
 for(const k in IMG){const im=new Image();im.decoding='async';im.onload=()=>document.querySelectorAll('.stage').forEach(el=>el._S&&draw(el._S));im.src=IMG[k];IMGS[k]=im;}
 
 /* ESP32 bridge: only active when the site is shown inside the ESP32's page */
-const FRAMED=window.parent!==window;
-const post=m=>{if(FRAMED)try{window.parent.postMessage(Object.assign({src:'biwb'},m),'*')}catch(_){}};
+/* Wearable connection.
+   - Shown inside the ESP32's page (iframe): pass messages to that page.
+   - Served by the ESP32 itself (<html data-device="esp32">, offline build): call the ESP32 directly. */
+const DEVICE=document.documentElement.dataset.device==='esp32';
+const FRAMED=!DEVICE&&window.parent!==window;
+const call=(path,opt)=>fetch(path,Object.assign({cache:'no-store'},opt||{})).catch(()=>{});
+const vib={v1200:false,v1300:false};
+const post=m=>{
+  if(FRAMED){try{window.parent.postMessage(Object.assign({src:'biwb'},m),'*')}catch(_){}return;}
+  if(!DEVICE)return;
+  if(m.t==='hold')call((m.on?'/start?t=':'/stop?t=')+m.temp);
+  else if(m.t==='temp'){
+    call('/kiln?t='+m.temp);
+    if(!vib.v1200&&m.temp>=1200){vib.v1200=true;call('/vib1');}   // single buzz
+    if(!vib.v1300&&m.temp>=1300){vib.v1300=true;call('/vib2');}   // double buzz
+  }
+  else if(m.t==='reset'){vib.v1200=vib.v1300=false;call('/reset');}
+};
 let lastBeat=0;
 
 /* firing engine */
@@ -444,11 +462,11 @@ const ICOL={touch:'var(--ember)',up:'var(--cobalt)',check:'var(--ok)',drop:'var(
 const ARROW='<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 
 let FS,DS,lastSt=null;
-function setHold(on){if(on===fire.hold)return;fire.hold=on;post({t:'hold',on,temp:Math.round(tempAt(fire.p))});setHeat(FS,on);renderFeedback();}
+function setHold(on,{silent=false}={}){if(on===fire.hold)return;fire.hold=on;if(!silent)post({t:'hold',on,temp:Math.round(tempAt(fire.p))});setHeat(FS,on);renderFeedback();}
 function tick(ts){const dt=fire.last?Math.min(0.1,(ts-fire.last)/1000):0;fire.last=ts;
   if(fire.hold&&fire.p<1)fire.p=Math.min(1,fire.p+dt/FIRE_SECONDS);
   stepHeat(FS,dt);
-  if(fire.hold&&ts-lastBeat>200){lastBeat=ts;post({t:'temp',temp:Math.round(tempAt(fire.p))});}
+  if(fire.hold&&ts-lastBeat>250){lastBeat=ts;post({t:'temp',temp:Math.round(tempAt(fire.p))});}
   if(!$('#s-firing').hidden)render();requestAnimationFrame(tick);}
 function render(){
   const T=tempAt(fire.p),st0=stateOf(T),st=st0==='under'&&T>=800?'under2':st0;paint(FS,fire.p*8);
@@ -519,6 +537,22 @@ render();requestAnimationFrame(tick);
 const h=location.hash.replace('#','');go(screens.includes(h)?h:'welcome',{push:false});
 window.BIWB={fire,setHold,go};
 post({t:'ready'});
+
+/* Offline ESP32 build only: wearable status badge + switch the heater off when the page is hidden */
+if(DEVICE){
+  const badge=document.createElement('div');badge.id='devBadge';badge.hidden=true;document.body.appendChild(badge);
+  const show=t=>{badge.textContent=t;badge.hidden=!t;};
+  const poll=async()=>{
+    try{const r=await fetch('/status',{cache:'no-store'});const d=await r.json();
+      show(d.fault?'Wearable safety stop'+(d.faultReason?': '+d.faultReason:'')+' · tap Reset'
+          :!d.sensorReady?'Wearable sensor not ready':'');}
+    catch(_){show('Wearable not connected');}
+  };
+  setInterval(poll,500);poll();
+  const off=()=>{setHold(false,{silent:true});call('/off',{keepalive:true});};
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)off();});
+  addEventListener('pagehide',off);
+}
 })();
 </script>
 </body>
