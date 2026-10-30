@@ -469,7 +469,7 @@ const SND=(()=>{
     verb=ctx.createConvolver();verb.buffer=impulse(2.6,2.4);const vg=ctx.createGain();vg.gain.value=.3;verb.connect(vg);vg.connect(master);
     music=ctx.createGain();music.gain.value=MUSIC;music.connect(master);
     sfx=ctx.createGain();sfx.gain.value=SFX;sfx.connect(master);
-    vox=ctx.createGain();vox.gain.value=1;vox.connect(master);loadVoice();
+    vox=ctx.createGain();vox.gain.value=.7;vox.connect(master);loadVoice();
     brown=noise(true);white=noise(false);return true}
   const out=(bus,wet)=>{const g=ctx.createGain();g.connect(bus);if(wet){const w=ctx.createGain();w.gain.value=wet;g.connect(w);w.connect(verb)}return g};
   const env=(g,t,pk,a,d)=>{g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(pk,t+a);g.gain.exponentialRampToValueAtTime(.0001,t+d)};
