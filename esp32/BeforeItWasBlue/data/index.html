@@ -525,7 +525,7 @@ const SND=(()=>{
   function applyDuck(){if(!ctx)return;const t=ctx.currentTime;if(playing)music.gain.setTargetAtTime(MUSIC*(vduck?.3:ducked?.45:1),t,.2);sfx.gain.setTargetAtTime(SFX*(vduck?.7:1),t,.15)}
   function duck(d){ducked=d;applyDuck()}
   /* recorded voice guidance (assets/voice/*.mp3) */
-  const VOICE=['start','again','under','under2','ideal','over','complete','reveal'],vbuf={};let vsrc=null,pend=null;
+  const VOICE=['start','again','under','under2','ideal','over','complete','reveal','takeaway'],vbuf={};let vsrc=null,pend=null;
   function decode(b){return new Promise((res,rej)=>{const p=ctx.decodeAudioData(b,res,rej);if(p&&p.then)p.then(res,rej)})}
   function loadVoice(){for(const k of VOICE)fetch('assets/voice/'+k+'.mp3').then(r=>r.arrayBuffer()).then(decode).then(buf=>{vbuf[k]=buf;flush()}).catch(()=>{})}
   function flush(){if(pend&&performance.now()-pend.t<2500){const k=pend.k,d=pend.d;if(vbuf[k]&&ctx.state==='running'){pend=null;say(k,d)}}}
@@ -537,7 +537,7 @@ const SND=(()=>{
   const ready=()=>on&&ctx&&ctx.state==='running';
   return{
     unlock(){if(!on)return;if(!init())return;if(ctx.state!=='running')ctx.resume().then(()=>{musicStart();flush()}).catch(()=>{});else musicStart()},
-    say,
+    say,stopVoice,
     play(k){if(ready()&&FX[k])FX[k](ctx.currentTime+.01)},
     fireOn(){if(!ready()||fireN)return;const s_=ctx.createBufferSource(),f=ctx.createBiquadFilter(),g=ctx.createGain(),t=ctx.currentTime;
       s_.buffer=brown;s_.loop=true;f.type='lowpass';f.frequency.value=240;f.Q.value=.6;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.22,t+.45);
@@ -619,6 +619,8 @@ function go(name,{push=true}={}){
   if(name==='firing'){if(push)stack.length=0;setView('fragment');resetFire();}
   if(name==='complete'&&push)SND.say('complete',.6);   // after the 'firing complete' bells
   if(name==='reveal'&&push)SND.say('reveal',.35);      // after the 'next' chime
+  if(name==='takeaway'&&push)SND.say('takeaway',.35);
+  if(name==='welcome')SND.stopVoice();
   if(name==='complete'){$('#cTemp').textContent=Math.round(tempAt(fire.p));setView($('#s-firing [aria-pressed="true"]').dataset.view);
     const seq=$('#revealSeq');seq.classList.remove('play');void seq.offsetWidth;seq.classList.add('play');}
   if(name==='reveal')$$('.card').forEach(c=>c.setAttribute('aria-pressed',c.dataset.k==='ideal'));
