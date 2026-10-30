@@ -426,16 +426,12 @@ function setHeat(S,on){S.heatT=on?1:0;}
 function stepHeat(S,dt){if(S.heat===S.heatT)return;const d=dt/0.35;S.heat=S.heatT>S.heat?Math.min(S.heatT,S.heat+d):Math.max(S.heatT,S.heat-d);draw(S);}
 for(const k in IMG){const im=new Image();im.decoding='async';im.onload=()=>document.querySelectorAll('.stage').forEach(el=>el._S&&draw(el._S));im.src=IMG[k];IMGS[k]=im;}
 
-/* ESP32 bridge: only active when the site is shown inside the ESP32's page */
-/* Wearable connection.
-   - Shown inside the ESP32's page (iframe): pass messages to that page.
-   - Served by the ESP32 itself (<html data-device="esp32">, offline build): call the ESP32 directly. */
+/* Wearable connection: only in the offline ESP32 build (<html data-device="esp32">),
+   where the page is served by the ESP32 and calls it directly. On the website it does nothing. */
 const DEVICE=document.documentElement.dataset.device==='esp32';
-const FRAMED=!DEVICE&&window.parent!==window;
 const call=(path,opt)=>fetch(path,Object.assign({cache:'no-store'},opt||{})).catch(()=>{});
 const vib={v1200:false,v1300:false};
 const post=m=>{
-  if(FRAMED){try{window.parent.postMessage(Object.assign({src:'biwb'},m),'*')}catch(_){}return;}
   if(!DEVICE)return;
   if(m.t==='hold')call((m.on?'/start?t=':'/stop?t=')+m.temp);
   else if(m.t==='temp'){
@@ -536,7 +532,6 @@ new ResizeObserver(()=>{$$('.stage').forEach(el=>el._S&&layout(el._S));paint(FS,
 render();requestAnimationFrame(tick);
 const h=location.hash.replace('#','');go(screens.includes(h)?h:'welcome',{push:false});
 window.BIWB={fire,setHold,go};
-post({t:'ready'});
 
 /* Offline ESP32 build only: wearable status badge + switch the heater off when the page is hidden */
 if(DEVICE){
