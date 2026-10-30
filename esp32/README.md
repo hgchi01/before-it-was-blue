@@ -1,11 +1,7 @@
 # ESP32 wearable
 
-There are two sketches. **Use `BeforeItWasBlue` for the exhibition.**
-
-| Sketch | Network | Page |
-|---|---|---|
-| `BeforeItWasBlue/` (main) | ESP32 makes its own Wi-Fi, no internet needed | served from the ESP32 (`data/`) |
-| `PorcelainDemo/` (older) | ESP32 joins a Wi-Fi with internet | shows before-it-was-blue.vercel.app |
+`BeforeItWasBlue/` is the exhibition sketch. The ESP32 makes its own Wi-Fi (no internet
+needed) and serves the page from its own storage (`data/`).
 
 ## BeforeItWasBlue (offline)
 
