@@ -8,7 +8,7 @@ Reads index.html (the Vercel site) and writes esp32/BeforeItWasBlue/data/ :
                 * talks to the ESP32 directly (data-device="esp32")
                 * fonts from the ESP32 instead of Google Fonts
                 * exhibition settings: 45 s firing and its own wording (see CHANGES)
-  assets/     - plate images and logo
+  assets/     - plate images, logo and voice clips (assets/voice)
   fonts/      - Manrope + Inter
 Upload the data folder with "Upload LittleFS" after running this.
 """
@@ -51,8 +51,7 @@ def main():
     (OUT / "assets").mkdir(parents=True)
     (OUT / "fonts").mkdir()
     (OUT / "index.html").write_text(html, encoding="utf-8")
-    for f in (ROOT / "assets").iterdir():
-        shutil.copy2(f, OUT / "assets" / f.name)
+    shutil.copytree(ROOT / "assets", OUT / "assets", dirs_exist_ok=True)
     for f in (ROOT / "tools" / "fonts").iterdir():
         shutil.copy2(f, OUT / "fonts" / f.name)
     size = sum(p.stat().st_size for p in OUT.rglob("*") if p.is_file())
