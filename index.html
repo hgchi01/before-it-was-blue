@@ -522,15 +522,18 @@ const SND=(()=>{
   function applyDuck(){if(!ctx)return;const t=ctx.currentTime;if(playing)music.gain.setTargetAtTime(MUSIC*(vduck?.3:ducked?.45:1),t,.2);sfx.gain.setTargetAtTime(SFX*(vduck?.7:1),t,.15)}
   function duck(d){ducked=d;applyDuck()}
   /* recorded voice guidance (assets/voice/*.mp3) */
-  const VOICE=['start','again','under','under2','ideal','over','complete','reveal','takeaway'],vbuf={};let vsrc=null,pend=null;
+  const VOICE=['start','again','under','under2','ideal','over','complete','reveal','takeaway','explore'],vbuf={};let vsrc=null,pend=null,queued=null;
   function decode(b){return new Promise((res,rej)=>{const p=ctx.decodeAudioData(b,res,rej);if(p&&p.then)p.then(res,rej)})}
   function loadVoice(){for(const k of VOICE)fetch('assets/voice/'+k+'.mp3').then(r=>r.arrayBuffer()).then(decode).then(buf=>{vbuf[k]=buf;flush()}).catch(()=>{})}
   function flush(){if(pend&&performance.now()-pend.t<2500){const k=pend.k,d=pend.d;if(vbuf[k]&&ctx.state==='running'){pend=null;say(k,d)}}}
-  function stopVoice(){pend=null;if(vsrc){const s_=vsrc;vsrc=null;try{s_.stop()}catch(_){}vduck=false;applyDuck()}}
-  function say(k,delay=0){if(!on||!ctx)return;if(!vbuf[k]||ctx.state!=='running'){pend={k,d:delay,t:performance.now()};return}pend=null;
+  function stopVoice(){pend=null;queued=null;if(vsrc){const s_=vsrc;vsrc=null;try{s_.stop()}catch(_){}vduck=false;applyDuck()}}
+  function say(k,delay=0,{after=false,when=null}={}){if(!on||!ctx)return;
+    if(after&&vsrc){queued={k,delay,when};return}queued=null;
+    if(!vbuf[k]||ctx.state!=='running'){pend={k,d:delay,t:performance.now()};return}pend=null;
     if(vsrc){const old=vsrc;vsrc=null;try{old.stop()}catch(_){}}
     const s_=ctx.createBufferSource();s_.buffer=vbuf[k];s_.connect(vox);vsrc=s_;vduck=true;applyDuck();
-    s_.onended=()=>{if(vsrc===s_){vsrc=null;vduck=false;applyDuck()}};s_.start(ctx.currentTime+.05+delay)}
+    s_.onended=()=>{if(vsrc===s_){vsrc=null;vduck=false;applyDuck();
+      if(queued){const q=queued;queued=null;if(!q.when||q.when())say(q.k,.25)}}};s_.start(ctx.currentTime+.05+delay)}
   const ready=()=>on&&ctx&&ctx.state==='running';
   return{
     unlock(){if(!on)return;if(!init())return;if(ctx.state!=='running')ctx.resume().then(()=>{musicStart();flush()}).catch(()=>{});else musicStart()},
@@ -569,7 +572,9 @@ const ARROW='<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentCo
 
 let FS,DS,lastSt=null;
 function setHold(on,{silent=false}={}){if(on===fire.hold)return;fire.hold=on;if(!silent)post({t:'hold',on,temp:Math.round(tempAt(fire.p))});
-  if(on){SND.play('ignite');SND.fireOn();}else{SND.fireOff();if(!silent)SND.play('cool');}setHeat(FS,on);renderFeedback();}
+  if(on){SND.play('ignite');SND.fireOn();}else{SND.fireOff();if(!silent)SND.play('cool');
+    if(!silent&&!firedMarks.explore&&stateOf(tempAt(fire.p))==='ideal'){firedMarks.explore=1;   // "tap Explore to continue"
+      SND.say('explore',.35,{after:true,when:()=>!fire.hold&&current==='firing'&&stateOf(tempAt(fire.p))==='ideal'});}}setHeat(FS,on);renderFeedback();}
 function tick(ts){const dt=fire.last?Math.min(0.1,(ts-fire.last)/1000):0;fire.last=ts;
   if(fire.hold&&fire.p<1)fire.p=Math.min(1,fire.p+dt/FIRE_SECONDS);
   stepHeat(FS,dt);
