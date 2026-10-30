@@ -525,15 +525,15 @@ const SND=(()=>{
   function applyDuck(){if(!ctx)return;const t=ctx.currentTime;if(playing)music.gain.setTargetAtTime(MUSIC*(vduck?.3:ducked?.45:1),t,.2);sfx.gain.setTargetAtTime(SFX*(vduck?.7:1),t,.15)}
   function duck(d){ducked=d;applyDuck()}
   /* recorded voice guidance (assets/voice/*.mp3) */
-  const VOICE=['start','again','under','under2','ideal','over'],vbuf={};let vsrc=null,pend=null;
+  const VOICE=['start','again','under','under2','ideal','over','complete'],vbuf={};let vsrc=null,pend=null;
   function decode(b){return new Promise((res,rej)=>{const p=ctx.decodeAudioData(b,res,rej);if(p&&p.then)p.then(res,rej)})}
   function loadVoice(){for(const k of VOICE)fetch('assets/voice/'+k+'.mp3').then(r=>r.arrayBuffer()).then(decode).then(buf=>{vbuf[k]=buf;flush()}).catch(()=>{})}
-  function flush(){if(pend&&performance.now()-pend.t<2500){const k=pend.k;if(vbuf[k]&&ctx.state==='running'){pend=null;say(k)}}}
+  function flush(){if(pend&&performance.now()-pend.t<2500){const k=pend.k,d=pend.d;if(vbuf[k]&&ctx.state==='running'){pend=null;say(k,d)}}}
   function stopVoice(){pend=null;if(vsrc){const s_=vsrc;vsrc=null;try{s_.stop()}catch(_){}vduck=false;applyDuck()}}
-  function say(k){if(!on||!ctx)return;if(!vbuf[k]||ctx.state!=='running'){pend={k,t:performance.now()};return}pend=null;
+  function say(k,delay=0){if(!on||!ctx)return;if(!vbuf[k]||ctx.state!=='running'){pend={k,d:delay,t:performance.now()};return}pend=null;
     if(vsrc){const old=vsrc;vsrc=null;try{old.stop()}catch(_){}}
     const s_=ctx.createBufferSource();s_.buffer=vbuf[k];s_.connect(vox);vsrc=s_;vduck=true;applyDuck();
-    s_.onended=()=>{if(vsrc===s_){vsrc=null;vduck=false;applyDuck()}};s_.start(ctx.currentTime+.05)}
+    s_.onended=()=>{if(vsrc===s_){vsrc=null;vduck=false;applyDuck()}};s_.start(ctx.currentTime+.05+delay)}
   const ready=()=>on&&ctx&&ctx.state==='running';
   return{
     unlock(){if(!on)return;if(!init())return;if(ctx.state!=='running')ctx.resume().then(()=>{musicStart();flush()}).catch(()=>{});else musicStart()},
@@ -617,6 +617,7 @@ function go(name,{push=true}={}){
   current=name;for(const s of screens)$('#s-'+s).hidden=s!==name;
   $('#backBtn').hidden=!['complete','reveal','takeaway'].includes(name);
   if(name==='firing'){if(push)stack.length=0;setView('fragment');resetFire();}
+  if(name==='complete'&&push)SND.say('complete',.6);   // after the 'firing complete' bells
   if(name==='complete'){$('#cTemp').textContent=Math.round(tempAt(fire.p));setView($('#s-firing [aria-pressed="true"]').dataset.view);
     const seq=$('#revealSeq');seq.classList.remove('play');void seq.offsetWidth;seq.classList.add('play');}
   if(name==='reveal')$$('.card').forEach(c=>c.setAttribute('aria-pressed',c.dataset.k==='ideal'));
