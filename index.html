@@ -486,7 +486,7 @@ const SND=(()=>{
     if(rise){g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(gain,t+dur*.9);g.gain.linearRampToValueAtTime(.0001,t+dur)}else env(g,t,gain,dur*.25,dur);
     s_.connect(f);f.connect(g);g.connect(out(sfx,.25));s_.start(t,Math.random());s_.stop(t+dur+.05)}
   function crackle(t,x){const s_=ctx.createBufferSource(),f=ctx.createBiquadFilter(),g=ctx.createGain(),d=.012+Math.random()*.03;s_.buffer=white;
-    f.type='highpass';f.frequency.value=1800+Math.random()*2500;env(g,t,(.04+Math.random()*.12)*(.4+x),.001,d);s_.connect(f);f.connect(g);
+    f.type='highpass';f.frequency.value=1800+Math.random()*2500;env(g,t,(.03+Math.random()*.09)*(.4+x),.001,d);s_.connect(f);f.connect(g);
     if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=Math.random()*1.4-.7;g.connect(p);p.connect(sfx)}else g.connect(sfx);
     s_.start(t,Math.random()*1.5);s_.stop(t+d+.02)}
   const FX={
@@ -524,9 +524,9 @@ const SND=(()=>{
     unlock(){if(!on)return;if(!init())return;if(ctx.state!=='running')ctx.resume().then(musicStart).catch(()=>{});else musicStart()},
     play(k){if(ready()&&FX[k])FX[k](ctx.currentTime+.01)},
     fireOn(){if(!ready()||fireN)return;const s_=ctx.createBufferSource(),f=ctx.createBiquadFilter(),g=ctx.createGain(),t=ctx.currentTime;
-      s_.buffer=brown;s_.loop=true;f.type='lowpass';f.frequency.value=240;f.Q.value=.6;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.32,t+.45);
+      s_.buffer=brown;s_.loop=true;f.type='lowpass';f.frequency.value=240;f.Q.value=.6;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.22,t+.45);
       s_.connect(f);f.connect(g);g.connect(sfx);s_.start(t);fireN={s_,f,g};duck(true)},
-    fireLevel(x){if(!fireN||!ctx)return;const t=ctx.currentTime;fireN.f.frequency.setTargetAtTime(240+1500*x*x,t,.15);fireN.g.gain.setTargetAtTime(.32+.3*x,t,.25);
+    fireLevel(x){if(!fireN||!ctx)return;const t=ctx.currentTime;fireN.f.frequency.setTargetAtTime(240+1500*x*x,t,.15);fireN.g.gain.setTargetAtTime(.22+.21*x,t,.25);
       if(t>crackT){crackle(t+.01,x);crackT=t+(.35-.3*x)*(.5+Math.random())}},
     fireOff(){if(!fireN)return;const {s_,f,g}=fireN,t=ctx.currentTime;fireN=null;g.gain.cancelScheduledValues(t);g.gain.setValueAtTime(Math.max(.0001,g.gain.value),t);
       g.gain.exponentialRampToValueAtTime(.0001,t+.8);f.frequency.setTargetAtTime(160,t,.25);s_.stop(t+.9);duck(false)},
